@@ -1,171 +1,229 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Bender Puzzle - By Samik Bhusal</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Fist of Legends</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
+    
     <style>
         body {
-            background-color: #f4f4f4;
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
             margin: 0;
-        }
-        #game-container {
-            width: 100%;
-            max-width: 600px;
-            height: 400px;
-            border: 2px solid #333;
-            position: relative;
+            font-family: Arial, sans-serif;
             overflow: hidden;
-            background: #e0e0e0;
+            background-color: #222;
         }
-        .moving-object {
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        .fighter {
+            width: 60px;
+            height: 120px;
             position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: #007bff;
+            bottom: 0;
+            background-color: red;
+            transition: all 0.3s ease;
+        }
+
+        #tushar {
+            background-color: #33b5e5;
+        }
+
+        #trilochan {
+            background-color: #e50000;
+        }
+
+        .health-bar {
+            position: absolute;
+            width: 150px;
+            height: 20px;
+            background-color: #0c0;
+            top: 20px;
+        }
+
+        .health-bar.trilochan {
+            left: 80%;
+        }
+
+        .health-bar.tushar {
+            left: 5%;
+        }
+
+        .control-icons {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+            z-index: 10;
+        }
+
+        .control-icons div {
+            width: 50px;
+            height: 50px;
+            background-color: #444;
             border-radius: 50%;
-            transition: transform 1s linear, top 1s linear, left 1s linear;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            font-size: 30px;
+            color: white;
         }
-        .button-container {
-            margin-top: 20px;
-            text-align: center;
+
+        .control-icons div:hover {
+            background-color: #bbb;
         }
-        #level-editor {
+
+        #victory-screen {
             display: none;
-            margin-top: 30px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            color: white;
             text-align: center;
+            background: rgba(0,0,0,0.7);
+            padding: 20px;
+            border-radius: 10px;
         }
-        .editor-btn {
-            margin-top: 10px;
+
+        .victory {
+            color: #00ff00;
+        }
+
+        .defeat {
+            color: #ff0000;
         }
     </style>
 </head>
+
 <body>
-    <h1>Time Bender Puzzle</h1>
-    <p class="text-muted">By Samik Bhusal</p>
-    <div id="game-container"></div>
-    <div class="button-container">
-        <button class="btn btn-primary" id="start-btn">Start Puzzle</button>
-        <button class="btn btn-success editor-btn" id="editor-btn">Level Editor</button>
+    <div class="game-container">
+        <div id="tushar" class="fighter"></div>
+        <div id="trilochan" class="fighter"></div>
+        <div class="health-bar tushar" id="tushar-health"></div>
+        <div class="health-bar trilochan" id="trilochan-health"></div>
+
+        <div class="victory-screen" id="victory-screen"></div>
     </div>
-    <div id="level-editor">
-        <textarea id="level-input" rows="4" cols="50" placeholder="Create new level..."></textarea>
-        <button class="btn btn-warning" id="load-level">Load Level</button>
+
+    <div class="control-icons">
+        <div id="left">&#8592;</div>
+        <div id="punch">&#9995;</div>
+        <div id="right">&#8594;</div>
+        <div id="jump">&#8593;</div>
     </div>
 
     <script>
-        const gameContainer = document.getElementById("game-container");
-        const startBtn = document.getElementById("start-btn");
-        const editorBtn = document.getElementById("editor-btn");
-        const levelEditor = document.getElementById("level-editor");
-        const levelInput = document.getElementById("level-input");
-        const loadLevelBtn = document.getElementById("load-level");
+        let tusharHealth = 100;
+        let trilochanHealth = 100;
+        let isGameOver = false;
 
-        let objects = [];
-        let isPlaying = false;
-        let timeLimit = 10;
-        let actions = ["rewind", "pause", "slowdown"];
-        let currentTime = 0;
+        const tushar = document.getElementById("tushar");
+        const trilochan = document.getElementById("trilochan");
+        const tusharHealthBar = document.getElementById("tushar-health");
+        const trilochanHealthBar = document.getElementById("trilochan-health");
+        const victoryScreen = document.getElementById("victory-screen");
 
-        // Function to generate game objects
-        function createObject(id, x, y, timePath) {
-            const obj = document.createElement('div');
-            obj.classList.add('moving-object');
-            obj.style.left = x + "px";
-            obj.style.top = y + "px";
-            obj.id = id;
-            obj.dataset.timePath = timePath; // Store time path info
-            gameContainer.appendChild(obj);
-            objects.push(obj);
+        // Sound effects
+        const punchSound = new Audio("https://www.soundjay.com/button/beep-07.wav");
+        const jumpSound = new Audio("https://www.soundjay.com/button/beep-06.wav");
+        const victorySound = new Audio("https://www.soundjay.com/button/sounds/beep-09.mp3");
+        const defeatSound = new Audio("https://www.soundjay.com/button/beep-02.wav");
+
+        function updateHealthBar() {
+            tusharHealthBar.style.width = `${tusharHealth}%`;
+            trilochanHealthBar.style.width = `${trilochanHealth}%`;
+            checkGameStatus();
         }
 
-        // Start the puzzle
-        function startPuzzle() {
-            gameContainer.innerHTML = ""; // Clear any old objects
-            createObject("ball", 50, 100, "advance");
-            createObject("block", 200, 150, "rewind");
-            currentTime = 0;
-            isPlaying = true;
-            startTimer();
-        }
-
-        // Game timer
-        function startTimer() {
-            let timer = setInterval(() => {
-                if (currentTime >= timeLimit) {
-                    clearInterval(timer);
-                    alert("Puzzle Solved or Time's Up!");
-                    isPlaying = false;
-                }
-                currentTime++;
-            }, 1000);
-        }
-
-        // Rewind action
-        function rewindObject(id) {
-            const obj = document.getElementById(id);
-            obj.style.transform = "rotateY(180deg)";
-            obj.style.transition = "transform 0.5s";
-            obj.style.top = parseInt(obj.style.top) + 50 + "px";  // For instance, rewinding moves an object down
-        }
-
-        // Slowdown action
-        function slowdownObject(id) {
-            const obj = document.getElementById(id);
-            obj.style.transitionDuration = "2s";
-        }
-
-        // Pause action
-        function pauseObject(id) {
-            const obj = document.getElementById(id);
-            obj.style.transitionDuration = "none";  // Pause object
-        }
-
-        // Handle button clicks for actions
-        function applyAction(action, objectId) {
-            if (action === "rewind") rewindObject(objectId);
-            if (action === "slowdown") slowdownObject(objectId);
-            if (action === "pause") pauseObject(objectId);
-        }
-
-        // Trigger a random action for objects
-        function randomActions() {
-            objects.forEach(obj => {
-                let randomAction = actions[Math.floor(Math.random() * actions.length)];
-                applyAction(randomAction, obj.id);
-            });
-        }
-
-        // Show level editor
-        function showLevelEditor() {
-            levelEditor.style.display = "block";
-        }
-
-        // Load level editor logic
-        loadLevelBtn.addEventListener("click", () => {
-            const userLevel = levelInput.value.trim();
-            if (userLevel) {
-                alert("Level loaded successfully!");
-                // Simple placeholder for level logic load; complex user levels can be parsed here.
-                startPuzzle();
+        function checkGameStatus() {
+            if (tusharHealth <= 0 && !isGameOver) {
+                isGameOver = true;
+                victoryScreen.classList.add("defeat");
+                victoryScreen.innerHTML = "<div>Trilochan Wins!</div>";
+                defeatSound.play();
+                victoryScreen.style.display = "block";
+            } else if (trilochanHealth <= 0 && !isGameOver) {
+                isGameOver = true;
+                victoryScreen.classList.add("victory");
+                victoryScreen.innerHTML = "<div>Tushar Wins!</div>";
+                victorySound.play();
+                victoryScreen.style.display = "block";
             }
-        });
+        }
 
-        startBtn.addEventListener("click", startPuzzle);
-        editorBtn.addEventListener("click", showLevelEditor);
-        
-        // Allow player to click to apply random actions during game
-        gameContainer.addEventListener('click', randomActions);
+        function playerAttack() {
+            if (isGameOver) return;
+            punchSound.play();
+            trilochanHealth -= 10;
+            updateHealthBar();
+        }
 
+        function botAttack() {
+            if (isGameOver) return;
+            setTimeout(() => {
+                if (Math.random() > 0.7) {
+                    tusharHealth -= 20;
+                    updateHealthBar();
+                }
+            }, 800);
+        }
+
+        function playerMove(direction) {
+            if (isGameOver) return;
+            const leftPos = parseInt(tushar.style.left || 50);
+            if (direction === "left" && leftPos > 0) {
+                tushar.style.left = `${leftPos - 50}px`;
+            } else if (direction === "right" && leftPos < 90) {
+                tushar.style.left = `${leftPos + 50}px`;
+            }
+        }
+
+        function playerJump() {
+            if (isGameOver) return;
+            jumpSound.play();
+            tushar.style.bottom = "150px";
+            setTimeout(() => tushar.style.bottom = "0", 500);
+        }
+
+        function botMovement() {
+            if (isGameOver) return;
+            setInterval(() => {
+                const rand = Math.random();
+                if (rand < 0.5) {
+                    trilochan.style.left = `${parseInt(trilochan.style.left || 50) + (Math.random() < 0.5 ? -10 : 10)}px`;
+                }
+                botAttack();
+            }, 1500);
+        }
+
+        function handleControlEvents() {
+            document.getElementById("left").addEventListener("click", () => playerMove("left"));
+            document.getElementById("right").addEventListener("click", () => playerMove("right"));
+            document.getElementById("punch").addEventListener("click", () => playerAttack());
+            document.getElementById("jump").addEventListener("click", playerJump);
+        }
+
+        function startGame() {
+            botMovement();
+            updateHealthBar();
+            handleControlEvents();
+        }
+
+        window.onload = startGame;
     </script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
