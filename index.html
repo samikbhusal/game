@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Escape - Game by Samik Bhusal</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 10px;
+        }
+        #game-container {
+            width: 300px;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #343a40;
+            background-color: #e9ecef;
+            margin-top: 20px;
+        }
+        .maze-cell {
+            width: 30px;
+            height: 30px;
+            float: left;
+            box-sizing: border-box;
+            transition: background-color 0.3s;
+        }
+        .wall {
+            background-color: #343a40;
+        }
+        .trap {
+            background-color: #dc3545;
+        }
+        .power-up {
+            background-color: #ffc107;
+        }
+        #player {
+            width: 30px;
+            height: 30px;
+            background-color: #0d6efd;
+            position: absolute;
+            border-radius: 50%;
+        }
+        #goal {
+            width: 30px;
+            height: 30px;
+            background-color: #198754;
+            position: absolute;
+            border-radius: 50%;
+        }
+        #info {
+            text-align: center;
+            margin-top: 20px;
+        }
+        button {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="text-center">Maze Escape</h1>
+    <p class="text-muted text-center">Game by Samik Bhusal</p>
+    <div id="game-container"></div>
+    <div id="info">
+        <p class="fw-bold">Score: <span id="score">0</span></p>
+        <p id="message" class="text-danger fw-bold"></p>
+        <button id="restart" class="btn btn-primary">Restart</button>
+    </div>
+
+    <script>
+        const gameContainer = document.getElementById('game-container');
+        const message = document.getElementById('message');
+        const scoreDisplay = document.getElementById('score');
+        const restartButton = document.getElementById('restart');
+        const mazeSize = 10; // Maze is 10x10
+        const cellSize = 30; // Each cell is 30px x 30px
+        let playerPos = { x: 0, y: 0 };
+        let goalPos = { x: mazeSize - 1, y: mazeSize - 1 };
+        let score = 0;
+
+        // Random maze generator
+        function generateMaze() {
+            gameContainer.innerHTML = '';
+            const maze = [];
+            for (let row = 0; row < mazeSize; row++) {
+                const rowArr = [];
+                for (let col = 0; col < mazeSize; col++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('maze-cell');
+                    if (Math.random() < 0.2 && !(row === 0 && col === 0) && !(row === goalPos.y && col === goalPos.x)) {
+                        cell.classList.add('wall');
+                        rowArr.push('wall');
+                    } else if (Math.random() < 0.1 && !(row === goalPos.y && col === goalPos.x)) {
+                        cell.classList.add('trap');
+                        rowArr.push('trap');
+                    } else if (Math.random() < 0.1) {
+                        cell.classList.add('power-up');
+                        rowArr.push('power-up');
+                    } else {
+                        rowArr.push('empty');
+                    }
+                    gameContainer.appendChild(cell);
+                }
+                maze.push(rowArr);
+            }
+            // Add player and goal
+            const player = document.createElement('div');
+            player.id = 'player';
+            gameContainer.appendChild(player);
+            const goal = document.createElement('div');
+            goal.id = 'goal';
+            gameContainer.appendChild(goal);
+            return maze;
+        }
+
+        // Update player position
+        function updatePlayerPosition() {
+            const player = document.getElementById('player');
+            player.style.left = `${playerPos.x * cellSize}px`;
+            player.style.top = `${playerPos.y * cellSize}px`;
+        }
+
+        // Update goal position
+        function updateGoalPosition() {
+            const goal = document.getElementById('goal');
+            goal.style.left = `${goalPos.x * cellSize}px`;
+            goal.style.top = `${goalPos.y * cellSize}px`;
+        }
+
+        // Initialize the game
+        function initializeGame() {
+            score = 0;
+            playerPos = { x: 0, y: 0 };
+            maze = generateMaze();
+            updatePlayerPosition();
+            updateGoalPosition();
+            message.textContent = '';
+            scoreDisplay.textContent = score;
+        }
+
+        let maze = generateMaze();
+        updatePlayerPosition();
+        updateGoalPosition();
+
+        // Handle movement
+        function movePlayer(direction) {
+            let newX = playerPos.x;
+            let newY = playerPos.y;
+
+            if (direction === 'up') newY--;
+            else if (direction === 'down') newY++;
+            else if (direction === 'left') newX--;
+            else if (direction === 'right') newX++;
+
+            if (newX >= 0 && newX < mazeSize && newY >= 0 && newY < mazeSize && maze[newY][newX] !== 'wall') {
+                playerPos.x = newX;
+                playerPos.y = newY;
+
+                const cellType = maze[newY][newX];
+                if (cellType === 'trap') {
+                    message.textContent = 'You hit a trap! Game Over!';
+                    restartButton.disabled = false;
+                    return;
+                } else if (cellType === 'power-up') {
+                    score += 10;
+                    scoreDisplay.textContent = score;
+                    maze[newY][newX] = 'empty'; // Remove power-up
+                }
+
+                if (playerPos.x === goalPos.x && playerPos.y === goalPos.y) {
+                    message.textContent = 'Congratulations! You Escaped!';
+                } else {
+                    message.textContent = '';
+                }
+                updatePlayerPosition();
+            }
+        }
+
+        // Swipe controls for mobile
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        gameContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        gameContainer.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                if (diffX > 0) movePlayer('right');
+                else movePlayer('left');
+            } else {
+                if (diffY > 0) movePlayer('down');
+                else movePlayer('up');
+            }
+        });
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') movePlayer('up');
+            else if (e.key === 'ArrowDown') movePlayer('down');
+            else if (e.key === 'ArrowLeft') movePlayer('left');
+            else if (e.key === 'ArrowRight') movePlayer('right');
+        });
+
+        // Restart game
+        restartButton.addEventListener('click', initializeGame);
+
+        initializeGame();
+    </script>
+    <!-- Bootstrap JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
