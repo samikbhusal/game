@@ -3,179 +3,169 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Memory Card Game - By Tushar Paudyal</title>
-    <!-- Bootstrap CSS -->
+    <title>Time Bender Puzzle - By Samik Bhusal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f4f4f4;
             font-family: Arial, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-height: 100vh;
+            height: 100vh;
             margin: 0;
-            padding: 20px;
         }
         #game-container {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            width: 90%;
-            max-width: 400px;
-        }
-        .card {
-            position: relative;
             width: 100%;
-            aspect-ratio: 1;
-            perspective: 1000px;
-            cursor: pointer;
-        }
-        .card-inner {
+            max-width: 600px;
+            height: 400px;
+            border: 2px solid #333;
             position: relative;
-            width: 100%;
-            height: 100%;
-            transform: rotateY(0deg);
-            transform-style: preserve-3d;
-            transition: transform 0.5s;
+            overflow: hidden;
+            background: #e0e0e0;
         }
-        .card.flip .card-inner {
-            transform: rotateY(180deg);
-        }
-        .card-front,
-        .card-back {
+        .moving-object {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 5px;
+            width: 30px;
+            height: 30px;
+            background-color: #007bff;
+            border-radius: 50%;
+            transition: transform 1s linear, top 1s linear, left 1s linear;
         }
-        .card-front {
-            background-color: #343a40;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5em;
-        }
-        .card-back {
-            background-color: #ffc107;
-            transform: rotateY(180deg);
-        }
-        #info {
+        .button-container {
             margin-top: 20px;
             text-align: center;
         }
-        .btn {
+        #level-editor {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .editor-btn {
             margin-top: 10px;
         }
     </style>
 </head>
 <body>
-    <h1 class="text-center">Memory Card Game</h1>
-    <p class="text-muted text-center">App Developed by Tushar Paudyal</p>
+    <h1>Time Bender Puzzle</h1>
+    <p class="text-muted">By Samik Bhusal</p>
     <div id="game-container"></div>
-    <div id="info">
-        <p>Attempts: <span id="attempts">0</span></p>
-        <p>Matches Found: <span id="matches">0</span></p>
-        <button id="restart" class="btn btn-primary">Restart</button>
+    <div class="button-container">
+        <button class="btn btn-primary" id="start-btn">Start Puzzle</button>
+        <button class="btn btn-success editor-btn" id="editor-btn">Level Editor</button>
+    </div>
+    <div id="level-editor">
+        <textarea id="level-input" rows="4" cols="50" placeholder="Create new level..."></textarea>
+        <button class="btn btn-warning" id="load-level">Load Level</button>
     </div>
 
     <script>
-        const gameContainer = document.getElementById('game-container');
-        const attemptsDisplay = document.getElementById('attempts');
-        const matchesDisplay = document.getElementById('matches');
-        const restartButton = document.getElementById('restart');
+        const gameContainer = document.getElementById("game-container");
+        const startBtn = document.getElementById("start-btn");
+        const editorBtn = document.getElementById("editor-btn");
+        const levelEditor = document.getElementById("level-editor");
+        const levelInput = document.getElementById("level-input");
+        const loadLevelBtn = document.getElementById("load-level");
 
-        const cardValues = ['🍎', '🍊', '🍌', '🍇', '🍓', '🍒', '🥝', '🍍'];
-        let cards = [];
-        let flippedCards = [];
-        let attempts = 0;
-        let matches = 0;
+        let objects = [];
+        let isPlaying = false;
+        let timeLimit = 10;
+        let actions = ["rewind", "pause", "slowdown"];
+        let currentTime = 0;
 
-        // Shuffle array
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+        // Function to generate game objects
+        function createObject(id, x, y, timePath) {
+            const obj = document.createElement('div');
+            obj.classList.add('moving-object');
+            obj.style.left = x + "px";
+            obj.style.top = y + "px";
+            obj.id = id;
+            obj.dataset.timePath = timePath; // Store time path info
+            gameContainer.appendChild(obj);
+            objects.push(obj);
         }
 
-        // Create game board
-        function createGameBoard() {
-            gameContainer.innerHTML = '';
-            attempts = 0;
-            matches = 0;
-            flippedCards = [];
-            attemptsDisplay.textContent = attempts;
-            matchesDisplay.textContent = matches;
+        // Start the puzzle
+        function startPuzzle() {
+            gameContainer.innerHTML = ""; // Clear any old objects
+            createObject("ball", 50, 100, "advance");
+            createObject("block", 200, 150, "rewind");
+            currentTime = 0;
+            isPlaying = true;
+            startTimer();
+        }
 
-            // Duplicate and shuffle cards
-            cards = shuffle([...cardValues, ...cardValues]);
+        // Game timer
+        function startTimer() {
+            let timer = setInterval(() => {
+                if (currentTime >= timeLimit) {
+                    clearInterval(timer);
+                    alert("Puzzle Solved or Time's Up!");
+                    isPlaying = false;
+                }
+                currentTime++;
+            }, 1000);
+        }
 
-            // Create card elements
-            cards.forEach((value) => {
-                const card = document.createElement('div');
-                card.classList.add('card');
-                card.innerHTML = `
-                    <div class="card-inner">
-                        <div class="card-front"></div>
-                        <div class="card-back">${value}</div>
-                    </div>
-                `;
-                card.addEventListener('click', () => handleCardClick(card, value));
-                gameContainer.appendChild(card);
+        // Rewind action
+        function rewindObject(id) {
+            const obj = document.getElementById(id);
+            obj.style.transform = "rotateY(180deg)";
+            obj.style.transition = "transform 0.5s";
+            obj.style.top = parseInt(obj.style.top) + 50 + "px";  // For instance, rewinding moves an object down
+        }
+
+        // Slowdown action
+        function slowdownObject(id) {
+            const obj = document.getElementById(id);
+            obj.style.transitionDuration = "2s";
+        }
+
+        // Pause action
+        function pauseObject(id) {
+            const obj = document.getElementById(id);
+            obj.style.transitionDuration = "none";  // Pause object
+        }
+
+        // Handle button clicks for actions
+        function applyAction(action, objectId) {
+            if (action === "rewind") rewindObject(objectId);
+            if (action === "slowdown") slowdownObject(objectId);
+            if (action === "pause") pauseObject(objectId);
+        }
+
+        // Trigger a random action for objects
+        function randomActions() {
+            objects.forEach(obj => {
+                let randomAction = actions[Math.floor(Math.random() * actions.length)];
+                applyAction(randomAction, obj.id);
             });
         }
 
-        // Handle card click
-        function handleCardClick(card, value) {
-            if (card.classList.contains('flip') || flippedCards.length === 2) {
-                return;
-            }
-
-            card.classList.add('flip');
-            flippedCards.push({ card, value });
-
-            if (flippedCards.length === 2) {
-                attempts++;
-                attemptsDisplay.textContent = attempts;
-                checkForMatch();
-            }
+        // Show level editor
+        function showLevelEditor() {
+            levelEditor.style.display = "block";
         }
 
-        // Check if two flipped cards match
-        function checkForMatch() {
-            const [firstCard, secondCard] = flippedCards;
-
-            if (firstCard.value === secondCard.value) {
-                matches++;
-                matchesDisplay.textContent = matches;
-                flippedCards = [];
-
-                // Check if all matches are found
-                if (matches === cardValues.length) {
-                    setTimeout(() => alert('Congratulations! You found all matches!'), 300);
-                }
-            } else {
-                // Unflip cards after a short delay
-                setTimeout(() => {
-                    firstCard.card.classList.remove('flip');
-                    secondCard.card.classList.remove('flip');
-                    flippedCards = [];
-                }, 1000);
+        // Load level editor logic
+        loadLevelBtn.addEventListener("click", () => {
+            const userLevel = levelInput.value.trim();
+            if (userLevel) {
+                alert("Level loaded successfully!");
+                // Simple placeholder for level logic load; complex user levels can be parsed here.
+                startPuzzle();
             }
-        }
+        });
 
-        // Initialize game
-        createGameBoard();
+        startBtn.addEventListener("click", startPuzzle);
+        editorBtn.addEventListener("click", showLevelEditor);
+        
+        // Allow player to click to apply random actions during game
+        gameContainer.addEventListener('click', randomActions);
 
-        // Restart button
-        restartButton.addEventListener('click', createGameBoard);
     </script>
-    <!-- Bootstrap JS Bundle -->
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
