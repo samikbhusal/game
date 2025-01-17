@@ -1,166 +1,170 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Habit Tracker App</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>RoomMate - Room Finder & Rent Marketplace</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
+        .card {
+            margin: 20px;
         }
-        .app-header {
-            background: linear-gradient(90deg, #34d399, #3b82f6);
-            color: white;
-            padding: 1rem 0;
+
+        .filter-container {
+            margin-bottom: 20px;
         }
-        .habit-card {
-            transition: transform 0.3s;
+
+        .room-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
         }
-        .habit-card:hover {
-            transform: scale(1.05);
+
+        .fav-btn {
+            cursor: pointer;
+            color: red;
         }
-        .footer {
-            background-color: #343a40;
-            color: white;
-            padding: 1rem 0;
-        }
-        .modal .form-control {
-            margin-bottom: 1rem;
+
+        #map {
+            height: 400px;
+            width: 100%;
         }
     </style>
 </head>
+
 <body>
-    <!-- Header -->
-    <header class="app-header text-center">
-        <h1 class="mb-0">My Habit Tracker</h1>
-        <p>Track, improve, and build better habits</p>
-    </header>
 
-    <!-- Habit Tracker Section -->
-    <section class="container py-4">
-        <h2 class="text-center mb-4">Your Habits</h2>
-        <div id="habit-list" class="row g-3">
-            <!-- Habit cards will be dynamically generated here -->
-        </div>
-        <div class="mt-4 text-center">
-            <button id="add-habit" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#habitModal">Add New Habit</button>
-        </div>
-    </section>
-
-    <!-- Statistics Section -->
-    <section class="container py-4">
-        <h2 class="text-center mb-4">Habit Statistics</h2>
-        <div id="habit-stats" class="row text-center">
-            <div class="col-md-6">
-                <h4>Total Habits</h4>
-                <p id="total-habits" class="fs-3">0</p>
-            </div>
-            <div class="col-md-6">
-                <h4>Total Streaks</h4>
-                <p id="total-streaks" class="fs-3">0</p>
+    <!-- Header and Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">RoomMate</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Sign In</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Register</a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </section>
+    </nav>
 
-    <!-- Add Habit Modal -->
-    <div class="modal fade" id="habitModal" tabindex="-1" aria-labelledby="habitModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="habitModalLabel">Add New Habit</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="habit-form">
-                        <input type="text" id="habit-name" class="form-control" placeholder="Habit Name" required>
-                        <button type="submit" class="btn btn-primary w-100">Add Habit</button>
-                    </form>
-                </div>
+    <!-- Room Search Filter Section -->
+    <div class="container filter-container">
+        <h3>Find your Perfect Room</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" class="form-control" id="searchInput" placeholder="Location, Name, etc.">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="priceFilter">
+                    <option value="">Filter by Price</option>
+                    <option value="1000">Less than $1000</option>
+                    <option value="2000">Less than $2000</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary" onclick="searchRooms()">Search</button>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer text-center">
-        <div class="container">
-            <p>&copy; 2025 My Habit Tracker. All Rights Reserved.</p>
+    <!-- Room Listings -->
+    <div class="container" id="roomList">
+        <h3>Available Rooms</h3>
+        <div class="row" id="rooms"></div>
+    </div>
+
+    <!-- Simple Map for Room Locations -->
+    <div class="container" id="map">
+        <!-- A mock map or embed here -->
+        <h3>Room Location Map</h3>
+        <div id="mapPlaceholder" style="background-color: lightgray; text-align:center; padding: 20px;">
+            <h5>Map would appear here!</h5>
         </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light text-center py-4">
+        <p>&copy; 2025 RoomMate. All Rights Reserved.</p>
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap 5 & JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const habitList = document.getElementById('habit-list');
-        const habitForm = document.getElementById('habit-form');
-        const habitNameInput = document.getElementById('habit-name');
-        const totalHabits = document.getElementById('total-habits');
-        const totalStreaks = document.getElementById('total-streaks');
+        // Mock room listings
+        const rooms = [
+            {
+                title: "Luxury Studio in NYC",
+                price: 1200,
+                location: "New York",
+                imageUrl: "https://via.placeholder.com/300",
+                details: "A cozy studio apartment in the heart of the city, close to all amenities."
+            },
+            {
+                title: "Spacious Room in San Francisco",
+                price: 900,
+                location: "San Francisco",
+                imageUrl: "https://via.placeholder.com/300",
+                details: "Spacious room with an open layout and plenty of sunlight."
+            }
+        ];
 
-        // Load habits from local storage
-        let habits = JSON.parse(localStorage.getItem('habits')) || [];
+        // Render room listings based on mock data
+        function renderRooms(filteredRooms) {
+            const roomContainer = document.getElementById('rooms');
+            roomContainer.innerHTML = ''; // Clear previous rooms
 
-        // Render habits
-        function renderHabits() {
-            habitList.innerHTML = '';
-            habits.forEach((habit, index) => {
-                const habitCard = document.createElement('div');
-                habitCard.className = 'col-12 col-md-4';
-                habitCard.innerHTML = `
-                    <div class="card habit-card text-center p-3">
-                        <div class="card-body">
-                            <h5 class="card-title">${habit.name}</h5>
-                            <p class="card-text">Streak: ${habit.streak} days</p>
-                            <button class="btn btn-primary" onclick="incrementStreak(${index})">+1 Day</button>
-                            <button class="btn btn-danger mt-2" onclick="removeHabit(${index})">Remove</button>
+            filteredRooms.forEach(room => {
+                const roomCard = `
+                    <div class="col-md-4">
+                        <div class="card">
+                            <img class="room-image" src="${room.imageUrl}" alt="${room.title}">
+                            <div class="card-body">
+                                <h5 class="card-title">${room.title}</h5>
+                                <p>${room.location} - $${room.price}</p>
+                                <p>${room.details}</p>
+                                <button class="fav-btn" onclick="bookmarkRoom('${room.title}')">❤️</button>
+                            </div>
                         </div>
                     </div>
                 `;
-                habitList.appendChild(habitCard);
+                roomContainer.innerHTML += roomCard;
             });
-            updateStatistics();
         }
 
-        // Add habit
-        habitForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            const newHabitName = habitNameInput.value.trim();
-            if (newHabitName) {
-                habits.push({ name: newHabitName, streak: 0 });
-                habitNameInput.value = '';
-                saveHabits();
-                renderHabits();
-                const modal = bootstrap.Modal.getInstance(document.getElementById('habitModal'));
-                modal.hide();
-            }
-        });
+        // Room Search functionality (mock version)
+        function searchRooms() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const priceFilter = document.getElementById('priceFilter').value;
 
-        // Increment streak
-        function incrementStreak(index) {
-            habits[index].streak += 1;
-            saveHabits();
-            renderHabits();
+            const filteredRooms = rooms.filter(room => {
+                return (room.title.toLowerCase().includes(searchTerm) ||
+                        room.location.toLowerCase().includes(searchTerm)) &&
+                        (priceFilter === "" || room.price <= priceFilter);
+            });
+            renderRooms(filteredRooms);
         }
 
-        // Remove habit
-        function removeHabit(index) {
-            habits.splice(index, 1);
-            saveHabits();
-            renderHabits();
+        // Add favorite room
+        function bookmarkRoom(roomTitle) {
+            alert(`${roomTitle} has been added to your favorites!`);
         }
 
-        // Update statistics
-        function updateStatistics() {
-            totalHabits.textContent = habits.length;
-            totalStreaks.textContent = habits.reduce((acc, habit) => acc + habit.streak, 0);
-        }
-
-        // Save habits to local storage
-        function saveHabits() {
-            localStorage.setItem('habits', JSON.stringify(habits));
-        }
-
-        // Initial render
-        renderHabits();
+        // Initial load
+        renderRooms(rooms);
     </script>
 </body>
+
 </html>
