@@ -1,229 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fist of Legends</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.0/css/bootstrap.min.css" rel="stylesheet">
-    
+    <title>My Habit Tracker App</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-            background-color: #222;
+            background-color: #f8f9fa;
         }
-
-        .game-container {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-        }
-
-        .fighter {
-            width: 60px;
-            height: 120px;
-            position: absolute;
-            bottom: 0;
-            background-color: red;
-            transition: all 0.3s ease;
-        }
-
-        #tushar {
-            background-color: #33b5e5;
-        }
-
-        #trilochan {
-            background-color: #e50000;
-        }
-
-        .health-bar {
-            position: absolute;
-            width: 150px;
-            height: 20px;
-            background-color: #0c0;
-            top: 20px;
-        }
-
-        .health-bar.trilochan {
-            left: 80%;
-        }
-
-        .health-bar.tushar {
-            left: 5%;
-        }
-
-        .control-icons {
-            position: fixed;
-            bottom: 10px;
-            width: 100%;
-            display: flex;
-            justify-content: space-around;
-            z-index: 10;
-        }
-
-        .control-icons div {
-            width: 50px;
-            height: 50px;
-            background-color: #444;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            font-size: 30px;
+        .app-header {
+            background: linear-gradient(90deg, #34d399, #3b82f6);
             color: white;
+            padding: 1rem 0;
         }
-
-        .control-icons div:hover {
-            background-color: #bbb;
+        .habit-card {
+            transition: transform 0.3s;
         }
-
-        #victory-screen {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 40px;
+        .habit-card:hover {
+            transform: scale(1.05);
+        }
+        .footer {
+            background-color: #343a40;
             color: white;
-            text-align: center;
-            background: rgba(0,0,0,0.7);
-            padding: 20px;
-            border-radius: 10px;
+            padding: 1rem 0;
         }
-
-        .victory {
-            color: #00ff00;
-        }
-
-        .defeat {
-            color: #ff0000;
+        .modal .form-control {
+            margin-bottom: 1rem;
         }
     </style>
 </head>
-
 <body>
-    <div class="game-container">
-        <div id="tushar" class="fighter"></div>
-        <div id="trilochan" class="fighter"></div>
-        <div class="health-bar tushar" id="tushar-health"></div>
-        <div class="health-bar trilochan" id="trilochan-health"></div>
+    <!-- Header -->
+    <header class="app-header text-center">
+        <h1 class="mb-0">My Habit Tracker</h1>
+        <p>Track, improve, and build better habits</p>
+    </header>
 
-        <div class="victory-screen" id="victory-screen"></div>
+    <!-- Habit Tracker Section -->
+    <section class="container py-4">
+        <h2 class="text-center mb-4">Your Habits</h2>
+        <div id="habit-list" class="row g-3">
+            <!-- Habit cards will be dynamically generated here -->
+        </div>
+        <div class="mt-4 text-center">
+            <button id="add-habit" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#habitModal">Add New Habit</button>
+        </div>
+    </section>
+
+    <!-- Statistics Section -->
+    <section class="container py-4">
+        <h2 class="text-center mb-4">Habit Statistics</h2>
+        <div id="habit-stats" class="row text-center">
+            <div class="col-md-6">
+                <h4>Total Habits</h4>
+                <p id="total-habits" class="fs-3">0</p>
+            </div>
+            <div class="col-md-6">
+                <h4>Total Streaks</h4>
+                <p id="total-streaks" class="fs-3">0</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Add Habit Modal -->
+    <div class="modal fade" id="habitModal" tabindex="-1" aria-labelledby="habitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="habitModalLabel">Add New Habit</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="habit-form">
+                        <input type="text" id="habit-name" class="form-control" placeholder="Habit Name" required>
+                        <button type="submit" class="btn btn-primary w-100">Add Habit</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="control-icons">
-        <div id="left">&#8592;</div>
-        <div id="punch">&#9995;</div>
-        <div id="right">&#8594;</div>
-        <div id="jump">&#8593;</div>
-    </div>
+    <!-- Footer -->
+    <footer class="footer text-center">
+        <div class="container">
+            <p>&copy; 2025 My Habit Tracker. All Rights Reserved.</p>
+        </div>
+    </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let tusharHealth = 100;
-        let trilochanHealth = 100;
-        let isGameOver = false;
+        const habitList = document.getElementById('habit-list');
+        const habitForm = document.getElementById('habit-form');
+        const habitNameInput = document.getElementById('habit-name');
+        const totalHabits = document.getElementById('total-habits');
+        const totalStreaks = document.getElementById('total-streaks');
 
-        const tushar = document.getElementById("tushar");
-        const trilochan = document.getElementById("trilochan");
-        const tusharHealthBar = document.getElementById("tushar-health");
-        const trilochanHealthBar = document.getElementById("trilochan-health");
-        const victoryScreen = document.getElementById("victory-screen");
+        // Load habits from local storage
+        let habits = JSON.parse(localStorage.getItem('habits')) || [];
 
-        // Sound effects
-        const punchSound = new Audio("https://www.soundjay.com/button/beep-07.wav");
-        const jumpSound = new Audio("https://www.soundjay.com/button/beep-06.wav");
-        const victorySound = new Audio("https://www.soundjay.com/button/sounds/beep-09.mp3");
-        const defeatSound = new Audio("https://www.soundjay.com/button/beep-02.wav");
-
-        function updateHealthBar() {
-            tusharHealthBar.style.width = `${tusharHealth}%`;
-            trilochanHealthBar.style.width = `${trilochanHealth}%`;
-            checkGameStatus();
+        // Render habits
+        function renderHabits() {
+            habitList.innerHTML = '';
+            habits.forEach((habit, index) => {
+                const habitCard = document.createElement('div');
+                habitCard.className = 'col-12 col-md-4';
+                habitCard.innerHTML = `
+                    <div class="card habit-card text-center p-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${habit.name}</h5>
+                            <p class="card-text">Streak: ${habit.streak} days</p>
+                            <button class="btn btn-primary" onclick="incrementStreak(${index})">+1 Day</button>
+                            <button class="btn btn-danger mt-2" onclick="removeHabit(${index})">Remove</button>
+                        </div>
+                    </div>
+                `;
+                habitList.appendChild(habitCard);
+            });
+            updateStatistics();
         }
 
-        function checkGameStatus() {
-            if (tusharHealth <= 0 && !isGameOver) {
-                isGameOver = true;
-                victoryScreen.classList.add("defeat");
-                victoryScreen.innerHTML = "<div>Trilochan Wins!</div>";
-                defeatSound.play();
-                victoryScreen.style.display = "block";
-            } else if (trilochanHealth <= 0 && !isGameOver) {
-                isGameOver = true;
-                victoryScreen.classList.add("victory");
-                victoryScreen.innerHTML = "<div>Tushar Wins!</div>";
-                victorySound.play();
-                victoryScreen.style.display = "block";
+        // Add habit
+        habitForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newHabitName = habitNameInput.value.trim();
+            if (newHabitName) {
+                habits.push({ name: newHabitName, streak: 0 });
+                habitNameInput.value = '';
+                saveHabits();
+                renderHabits();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('habitModal'));
+                modal.hide();
             }
+        });
+
+        // Increment streak
+        function incrementStreak(index) {
+            habits[index].streak += 1;
+            saveHabits();
+            renderHabits();
         }
 
-        function playerAttack() {
-            if (isGameOver) return;
-            punchSound.play();
-            trilochanHealth -= 10;
-            updateHealthBar();
+        // Remove habit
+        function removeHabit(index) {
+            habits.splice(index, 1);
+            saveHabits();
+            renderHabits();
         }
 
-        function botAttack() {
-            if (isGameOver) return;
-            setTimeout(() => {
-                if (Math.random() > 0.7) {
-                    tusharHealth -= 20;
-                    updateHealthBar();
-                }
-            }, 800);
+        // Update statistics
+        function updateStatistics() {
+            totalHabits.textContent = habits.length;
+            totalStreaks.textContent = habits.reduce((acc, habit) => acc + habit.streak, 0);
         }
 
-        function playerMove(direction) {
-            if (isGameOver) return;
-            const leftPos = parseInt(tushar.style.left || 50);
-            if (direction === "left" && leftPos > 0) {
-                tushar.style.left = `${leftPos - 50}px`;
-            } else if (direction === "right" && leftPos < 90) {
-                tushar.style.left = `${leftPos + 50}px`;
-            }
+        // Save habits to local storage
+        function saveHabits() {
+            localStorage.setItem('habits', JSON.stringify(habits));
         }
 
-        function playerJump() {
-            if (isGameOver) return;
-            jumpSound.play();
-            tushar.style.bottom = "150px";
-            setTimeout(() => tushar.style.bottom = "0", 500);
-        }
-
-        function botMovement() {
-            if (isGameOver) return;
-            setInterval(() => {
-                const rand = Math.random();
-                if (rand < 0.5) {
-                    trilochan.style.left = `${parseInt(trilochan.style.left || 50) + (Math.random() < 0.5 ? -10 : 10)}px`;
-                }
-                botAttack();
-            }, 1500);
-        }
-
-        function handleControlEvents() {
-            document.getElementById("left").addEventListener("click", () => playerMove("left"));
-            document.getElementById("right").addEventListener("click", () => playerMove("right"));
-            document.getElementById("punch").addEventListener("click", () => playerAttack());
-            document.getElementById("jump").addEventListener("click", playerJump);
-        }
-
-        function startGame() {
-            botMovement();
-            updateHealthBar();
-            handleControlEvents();
-        }
-
-        window.onload = startGame;
+        // Initial render
+        renderHabits();
     </script>
-
 </body>
-
 </html>
