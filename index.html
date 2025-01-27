@@ -3,38 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Space Runner</title>
+  <title>Highway Racer</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       margin: 0;
       overflow: hidden;
       font-family: Arial, sans-serif;
-      background: #000;
+      background: #333;
       color: #fff;
     }
     #game-container {
       position: relative;
       width: 100%;
       height: 100vh;
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxsaW5lIHgxPSIwIiB5MT0iMCIgeDI9IjEwMCUiIHkyPSIxMDAlIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjxsaW5lIHgxPSIxMDAlIiB5MT0iMCIgeDI9IjAiIHkyPSIxMDAlIiBzdHJva2U9IiMzMzMiIHN0cm9rZS13aWR0aD0iMiIvPjwvc3ZnPg==');
-      background-size: 20px 20px;
+      background: #222;
     }
-    #spaceship {
+    #player-car {
       position: absolute;
-      bottom: 20%;
-      left: 20%;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 50px;
-      height: 50px;
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSI1MCI+PHBhdGggZD0iTTI1IDBMNSA1MGg0MHoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=') no-repeat;
+      height: 100px;
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSIxMDAiPjxwYXRoIGQ9Ik0yNSAwdjEwMEgwdjUwaDUwdjUwaDI1VjEwMEg1MFY1MGg1MFYwSDI1eiIgZmlsbD0iI2ZmZiIvPjwvc3ZnPg==') no-repeat;
       background-size: contain;
-      transition: bottom 0.2s;
     }
-    .asteroid {
+    .obstacle-car {
       position: absolute;
-      width: 40px;
-      height: 40px;
-      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiNjY2MiLz48L3N2Zz4=') no-repeat;
+      width: 50px;
+      height: 100px;
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MCIgaGVpZ2h0PSIxMDAiPjxwYXRoIGQ9Ik0yNSAwdjEwMEgwdjUwaDUwdjUwaDI1VjEwMEg1MFY1MGg1MFYwSDI1eiIgZmlsbD0iI2ZmMDAwMCIvPjwvc3ZnPg==') no-repeat;
+      background-size: contain;
+    }
+    .coin {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PGNpcmNsZSBjeD0iMTUiIGN5PSIxNSIgcj0iMTUiIGZpbGw9IiNmZmNjMDAiLz48L3N2Zz4=') no-repeat;
       background-size: contain;
     }
     #score {
@@ -57,7 +63,7 @@
 <body>
   <!-- Game Container -->
   <div id="game-container">
-    <div id="spaceship"></div>
+    <div id="player-car"></div>
     <div id="score">Score: 0</div>
     <div id="game-over">
       <h2>Game Over!</h2>
@@ -68,72 +74,80 @@
 
   <script>
     const gameContainer = document.getElementById('game-container');
-    const spaceship = document.getElementById('spaceship');
+    const playerCar = document.getElementById('player-car');
     const scoreElement = document.getElementById('score');
     const gameOverElement = document.getElementById('game-over');
     const finalScoreElement = document.getElementById('final-score');
 
     let score = 0;
-    let isJumping = false;
     let gameOver = false;
+    let playerX = 50; // Player's horizontal position (percentage)
 
-    // Jump function
-    function jump() {
-      if (isJumping || gameOver) return;
-      isJumping = true;
-      let jumpHeight = 0;
-      const jumpInterval = setInterval(() => {
-        if (jumpHeight >= 100) {
-          clearInterval(jumpInterval);
-          const fallInterval = setInterval(() => {
-            if (jumpHeight <= 0) {
-              clearInterval(fallInterval);
-              isJumping = false;
-            }
-            jumpHeight -= 5;
-            spaceship.style.bottom = 20 + jumpHeight + '%';
-          }, 20);
-        }
-        jumpHeight += 5;
-        spaceship.style.bottom = 20 + jumpHeight + '%';
-      }, 20);
+    // Move player car
+    function movePlayer(direction) {
+      if (gameOver) return;
+      if (direction === 'left' && playerX > 10) playerX -= 10;
+      if (direction === 'right' && playerX < 90) playerX += 10;
+      playerCar.style.left = playerX + '%';
     }
 
-    // Create asteroids
-    function createAsteroid() {
+    // Create obstacles (other cars)
+    function createObstacle() {
       if (gameOver) return;
-      const asteroid = document.createElement('div');
-      asteroid.classList.add('asteroid');
-      asteroid.style.left = Math.random() * 90 + '%';
-      gameContainer.appendChild(asteroid);
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle-car');
+      obstacle.style.left = Math.random() * 80 + 10 + '%';
+      gameContainer.appendChild(obstacle);
 
-      let asteroidPosition = 0;
-      const asteroidInterval = setInterval(() => {
-        if (asteroidPosition > window.innerHeight) {
-          clearInterval(asteroidInterval);
-          asteroid.remove();
-          score++;
-          scoreElement.innerText = `Score: ${score}`;
-        } else if (checkCollision(spaceship, asteroid)) {
-          clearInterval(asteroidInterval);
+      let obstaclePosition = 0;
+      const obstacleInterval = setInterval(() => {
+        if (obstaclePosition > window.innerHeight) {
+          clearInterval(obstacleInterval);
+          obstacle.remove();
+        } else if (checkCollision(playerCar, obstacle)) {
+          clearInterval(obstacleInterval);
           gameOver = true;
           gameOverElement.style.display = 'block';
           finalScoreElement.innerText = score;
         }
-        asteroidPosition += 5 + score * 0.1; // Increase speed as score increases
-        asteroid.style.top = asteroidPosition + 'px';
+        obstaclePosition += 5 + score * 0.1; // Increase speed as score increases
+        obstacle.style.top = obstaclePosition + 'px';
+      }, 20);
+    }
+
+    // Create coins
+    function createCoin() {
+      if (gameOver) return;
+      const coin = document.createElement('div');
+      coin.classList.add('coin');
+      coin.style.left = Math.random() * 80 + 10 + '%';
+      gameContainer.appendChild(coin);
+
+      let coinPosition = 0;
+      const coinInterval = setInterval(() => {
+        if (coinPosition > window.innerHeight) {
+          clearInterval(coinInterval);
+          coin.remove();
+        } else if (checkCollision(playerCar, coin)) {
+          clearInterval(coinInterval);
+          coin.remove();
+          score += 10;
+          scoreElement.innerText = `Score: ${score}`;
+        }
+        coinPosition += 5 + score * 0.1; // Increase speed as score increases
+        coin.style.top = coinPosition + 'px';
       }, 20);
     }
 
     // Check collision
-    function checkCollision(spaceship, asteroid) {
-      const spaceshipRect = spaceship.getBoundingClientRect();
-      const asteroidRect = asteroid.getBoundingClientRect();
+    function checkCollision(player, element) {
+      const playerRect = player.getBoundingClientRect();
+      const elementRect = element.getBoundingClientRect();
       return !(
-        spaceshipRect.bottom < asteroidRect.top ||
-        spaceshipRect.top > asteroidRect.bottom ||
-        spaceshipRect.right < asteroidRect.left ||
-        spaceshipRect.left > asteroidRect.right
+        playerRect.bottom < elementRect.top ||
+        playerRect.top > elementRect.bottom ||
+        playerRect.right < elementRect.left ||
+        playerRect.left > elementRect.right
       );
     }
 
@@ -143,15 +157,25 @@
       score = 0;
       scoreElement.innerText = `Score: ${score}`;
       gameOverElement.style.display = 'none';
-      document.querySelectorAll('.asteroid').forEach(asteroid => asteroid.remove());
+      document.querySelectorAll('.obstacle-car, .coin').forEach(element => element.remove());
     }
 
-    // Event listeners
-    document.addEventListener('click', jump);
-    document.addEventListener('touchstart', jump);
+    // Event listeners for keyboard controls
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') movePlayer('left');
+      if (e.key === 'ArrowRight') movePlayer('right');
+    });
+
+    // Event listeners for touch controls
+    document.addEventListener('touchstart', (e) => {
+      const touchX = e.touches[0].clientX;
+      if (touchX < window.innerWidth / 2) movePlayer('left');
+      else movePlayer('right');
+    });
 
     // Start game loop
-    setInterval(createAsteroid, 1000);
+    setInterval(createObstacle, 2000);
+    setInterval(createCoin, 3000);
   </script>
 </body>
 </html>
