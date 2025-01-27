@@ -1,172 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RoomMate - Room Finder & Rent Marketplace (Nepal)</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .card {
-            margin: 15px;
-        }
-
-        .room-image {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-        }
-
-        .map-container {
-            height: 400px;
-        }
-
-        .filter-container {
-            margin-top: 20px;
-        }
-
-        .fav-btn {
-            cursor: pointer;
-            color: red;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Wellness Coach</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { font-family: Arial, sans-serif; }
+    .navbar { background: linear-gradient(90deg, #6a11cb, #2575fc); }
+    .chat-box { height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 10px; padding: 10px; }
+    .message { margin: 5px; padding: 10px; border-radius: 10px; }
+    .user-message { background: #2575fc; color: white; text-align: right; }
+    .bot-message { background: #f1f1f1; color: black; text-align: left; }
+    .wellness-tip { background: #e9f5ff; padding: 15px; border-radius: 10px; margin: 10px 0; }
+    .dark-mode { background: #333; color: #fff; }
+    .dark-mode .wellness-tip { background: #444; color: #fff; }
+  </style>
 </head>
-
 <body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">AI Wellness Coach</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <button class="btn btn-light" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">RoomMate</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Register</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Login</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Room Search Filter Section -->
-    <div class="container filter-container">
-        <h3>Search for Rooms</h3>
-        <div class="row">
-            <div class="col-md-3">
-                <input type="text" class="form-control" id="searchInput" placeholder="Search by location, area...">
-            </div>
-            <div class="col-md-2">
-                <select class="form-select" id="priceFilter">
-                    <option value="">Filter by Price</option>
-                    <option value="10000">Under NPR 10,000</option>
-                    <option value="20000">Under NPR 20,000</option>
-                    <option value="30000">Under NPR 30,000</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary" onclick="searchRooms()">Search</button>
-            </div>
-        </div>
+  <!-- Main Content -->
+  <div class="container mt-4">
+    <!-- Wellness Tip -->
+    <div class="wellness-tip">
+      <h5>Today's Wellness Tip</h5>
+      <p id="wellness-tip-text">Loading...</p>
     </div>
 
-    <!-- Room Listings Section -->
-    <div class="container" id="roomList">
-        <h3>Available Rooms</h3>
-        <div class="row" id="rooms"></div>
+    <!-- AI Chatbot -->
+    <div class="mt-4">
+      <h4>AI Chatbot</h4>
+      <div class="chat-box" id="chat-box">
+        <div class="message bot-message">Hello! How can I assist you today?</div>
+      </div>
+      <input type="text" class="form-control mt-2" id="user-input" placeholder="Type your message...">
+      <button class="btn btn-primary mt-2 w-100" onclick="sendMessage()">Send</button>
     </div>
+  </div>
 
-    <!-- Location Map Section -->
-    <div class="container map-container" id="map">
-        <h4>Room Location on Map</h4>
-        <!-- Mockup map (Google Map API integration can be added here) -->
-        <div id="mapPlaceholder" style="background-color: #ccc; text-align:center; padding: 20px;">
-            <h5>Map will be here</h5>
-        </div>
-    </div>
+  <script>
+    // Wellness Tips
+    const tips = [
+      "Drink at least 8 glasses of water today.",
+      "Take a 10-minute walk to refresh your mind.",
+      "Practice deep breathing for 5 minutes.",
+      "Get 7-8 hours of sleep tonight.",
+      "Eat a balanced meal with fruits and vegetables."
+    ];
+    document.getElementById('wellness-tip-text').innerText = tips[Math.floor(Math.random() * tips.length)];
 
-    <!-- Footer -->
-    <footer class="bg-light text-center py-4">
-        <p>&copy; 2025 RoomMate, All Rights Reserved.</p>
-    </footer>
+    // Chatbot Logic
+    function sendMessage() {
+      const userInput = document.getElementById('user-input').value;
+      if (userInput.trim() === "") return;
 
-    <!-- Bootstrap 5 JS & Custom Script -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Sample room listings in Nepali context (prices in NPR)
-        const rooms = [
-            {
-                title: "Luxury Room in Thamel",
-                price: 15000,
-                location: "Thamel, Kathmandu",
-                imageUrl: "https://via.placeholder.com/300",
-                details: "A fully furnished room in the heart of Kathmandu, great access to amenities.",
-                amenities: ["WiFi", "Attached Bathroom", "Fully Furnished"]
-            },
-            {
-                title: "Spacious Room in Patan",
-                price: 10000,
-                location: "Patan, Kathmandu",
-                imageUrl: "https://via.placeholder.com/300",
-                details: "Spacious room available for rent with large windows and good sunlight.",
-                amenities: ["WiFi", "Parking", "Laundry"]
-            }
+      const chatBox = document.getElementById('chat-box');
+      chatBox.innerHTML += `<div class="message user-message">${userInput}</div>`;
+      document.getElementById('user-input').value = "";
+
+      // Simulate AI response
+      setTimeout(() => {
+        const responses = [
+          "That's a great point! How can I help further?",
+          "Interesting! Let me think about that.",
+          "I recommend taking a short break to clear your mind.",
+          "Have you tried mindfulness exercises?",
+          "Let's focus on positive thoughts today."
         ];
+        const response = responses[Math.floor(Math.random() * responses.length)];
+        chatBox.innerHTML += `<div class="message bot-message">${response}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 1000);
+    }
 
-        // Render rooms dynamically
-        function renderRooms(filteredRooms) {
-            const roomContainer = document.getElementById('rooms');
-            roomContainer.innerHTML = ''; // Clear previous content
-            filteredRooms.forEach(room => {
-                const roomCard = `
-                    <div class="col-md-4">
-                        <div class="card">
-                            <img class="room-image" src="${room.imageUrl}" alt="${room.title}">
-                            <div class="card-body">
-                                <h5 class="card-title">${room.title}</h5>
-                                <p>Price: NPR ${room.price}</p>
-                                <p>Location: ${room.location}</p>
-                                <p>${room.details}</p>
-                                <p>Amenities: ${room.amenities.join(', ')}</p>
-                                <button class="fav-btn" onclick="bookmarkRoom('${room.title}')">❤️ Add to Favorites</button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                roomContainer.innerHTML += roomCard;
-            });
-        }
-
-        // Function to search rooms by location or price
-        function searchRooms() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const priceFilter = document.getElementById('priceFilter').value;
-            const filteredRooms = rooms.filter(room => {
-                return (room.title.toLowerCase().includes(searchTerm) ||
-                    room.location.toLowerCase().includes(searchTerm)) &&
-                    (priceFilter === "" || room.price <= priceFilter);
-            });
-            renderRooms(filteredRooms);
-        }
-
-        // Bookmark room functionality
-        function bookmarkRoom(roomTitle) {
-            alert(`${roomTitle} added to your favorites!`);
-        }
-
-        // Initialize by rendering all rooms
-        renderRooms(rooms);
-    </script>
+    // Dark Mode Toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>
