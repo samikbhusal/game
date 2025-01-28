@@ -28,9 +28,9 @@
             left: 25%;
             width: 50%;
             height: 100%;
-            background: #696969;
-            border-left: 10px dashed #fff;
-            border-right: 10px dashed #fff;
+            background: #000; /* Black road */
+            border-left: 10px dashed #fff; /* White dashed border */
+            border-right: 10px dashed #fff; /* White dashed border */
         }
 
         /* Lane Markings */
@@ -57,7 +57,9 @@
             transform: translateX(-50%);
             width: 60px;
             height: 100px;
-            background: url('https://www.clipartmax.com/png/middle/1-14353_car-top-view-car-top-view-png.png') no-repeat center center/cover;
+            background: red; /* Red car */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
             z-index: 10;
         }
 
@@ -66,7 +68,8 @@
             position: absolute;
             width: 50px;
             height: 100px;
-            background: url('https://www.clipartmax.com/png/middle/1-18559_tree-silhouette-png-tree-top-view-png.png') no-repeat center center/cover;
+            background: green; /* Green trees */
+            border-radius: 10px;
         }
 
         /* Obstacles */
@@ -75,7 +78,8 @@
             top: -100px;
             width: 50px;
             height: 50px;
-            background: url('https://www.clipartmax.com/png/middle/1-18559_tree-silhouette-png-tree-top-view-png.png') no-repeat center center/cover;
+            background: green; /* Green obstacles */
+            border-radius: 10px;
             animation: fall linear infinite;
         }
 
