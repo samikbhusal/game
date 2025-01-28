@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Car Game</title>
+    <title>Car Game with Road and Trees</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
-            background: linear-gradient(to bottom, #333, #000);
-            color: white;
+            background: linear-gradient(to bottom, #87CEEB, #4682B4);
             font-family: Arial, sans-serif;
         }
 
@@ -19,9 +18,38 @@
             position: relative;
             width: 100%;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.5);
+            overflow: hidden;
         }
 
+        /* Road */
+        .road {
+            position: absolute;
+            top: 0;
+            left: 25%;
+            width: 50%;
+            height: 100%;
+            background: #696969;
+            border-left: 10px dashed #fff;
+            border-right: 10px dashed #fff;
+        }
+
+        /* Lane Markings */
+        .lane-markings {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 2px;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 40px,
+                #fff 40px,
+                #fff 80px
+            );
+        }
+
+        /* Car */
         #car {
             position: absolute;
             bottom: 20px;
@@ -29,19 +57,25 @@
             transform: translateX(-50%);
             width: 60px;
             height: 100px;
-            background: linear-gradient(to bottom, #ff0000, #990000);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            background: url('https://www.clipartmax.com/png/middle/1-14353_car-top-view-car-top-view-png.png') no-repeat center center/cover;
+            z-index: 10;
         }
 
+        /* Trees */
+        .tree {
+            position: absolute;
+            width: 50px;
+            height: 100px;
+            background: url('https://www.clipartmax.com/png/middle/1-18559_tree-silhouette-png-tree-top-view-png.png') no-repeat center center/cover;
+        }
+
+        /* Obstacles */
         .obstacle {
             position: absolute;
             top: -100px;
             width: 50px;
             height: 50px;
-            background: linear-gradient(to bottom, #00f, #009);
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 255, 0.7);
+            background: url('https://www.clipartmax.com/png/middle/1-18559_tree-silhouette-png-tree-top-view-png.png') no-repeat center center/cover;
             animation: fall linear infinite;
         }
 
@@ -54,14 +88,17 @@
             }
         }
 
+        /* Score */
         #score {
             position: absolute;
             top: 20px;
             left: 20px;
             font-size: 24px;
             color: white;
+            z-index: 100;
         }
 
+        /* Game Over Screen */
         #game-over {
             position: absolute;
             top: 50%;
@@ -69,11 +106,13 @@
             transform: translate(-50%, -50%);
             text-align: center;
             display: none;
+            z-index: 100;
         }
 
         #game-over h1 {
             font-size: 48px;
             margin-bottom: 20px;
+            color: white;
         }
 
         #restart-button {
@@ -93,8 +132,26 @@
 </head>
 <body>
     <div class="game-container">
+        <!-- Road -->
+        <div class="road">
+            <div class="lane-markings"></div>
+        </div>
+
+        <!-- Trees -->
+        <div class="tree" style="left: 10%; top: 0;"></div>
+        <div class="tree" style="left: 10%; top: 30%;"></div>
+        <div class="tree" style="left: 10%; top: 60%;"></div>
+        <div class="tree" style="right: 10%; top: 0;"></div>
+        <div class="tree" style="right: 10%; top: 30%;"></div>
+        <div class="tree" style="right: 10%; top: 60%;"></div>
+
+        <!-- Car -->
         <div id="car"></div>
+
+        <!-- Score -->
         <div id="score">Score: 0</div>
+
+        <!-- Game Over Screen -->
         <div id="game-over">
             <h1>Game Over!</h1>
             <button id="restart-button">Restart</button>
@@ -116,10 +173,10 @@
 
         // Move the car
         document.addEventListener('keydown', (event) => {
-            if (event.key === 'ArrowLeft' && carLeft > 0) {
-                carLeft -= 10;
-            } else if (event.key === 'ArrowRight' && carLeft < 90) {
-                carLeft += 10;
+            if (event.key === 'ArrowLeft' && carLeft > 25) {
+                carLeft -= 5;
+            } else if (event.key === 'ArrowRight' && carLeft < 75) {
+                carLeft += 5;
             }
             car.style.left = `${carLeft}%`;
         });
@@ -128,7 +185,7 @@
         function createObstacle() {
             const obstacle = document.createElement('div');
             obstacle.classList.add('obstacle');
-            obstacle.style.left = `${Math.random() * 90}%`; // Random horizontal position
+            obstacle.style.left = `${25 + Math.random() * 50}%`; // Random horizontal position within the road
             obstacle.style.animationDuration = `${gameSpeed}s`; // Set falling speed
             gameContainer.appendChild(obstacle);
 
