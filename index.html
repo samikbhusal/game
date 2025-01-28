@@ -1,232 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bike Racer</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      background: #333;
-      color: #fff;
-    }
-    #game-container {
-      position: relative;
-      width: 100%;
-      height: 100vh;
-      background: url('https://i.imgur.com/3QZQZQz.jpg') repeat-y; /* Background map */
-      background-size: 100% auto;
-      animation: scrollBackground 5s linear infinite;
-    }
-    @keyframes scrollBackground {
-      from { background-position: 0 0; }
-      to { background-position: 0 100%; }
-    }
-    .bike {
-      position: absolute;
-      bottom: 20px;
-      width: 80px;
-      height: 80px;
-      background-size: contain;
-      background-repeat: no-repeat;
-    }
-    #player-bike {
-      background-image: url('https://i.imgur.com/9QZQZQz.png'); /* Player bike */
-      left: 50%;
-      transform: translateX(-50%);
-    }
-    .opponent-bike {
-      background-image: url('https://i.imgur.com/8QZQZQz.png'); /* Opponent bike */
-    }
-    .booster {
-      position: absolute;
-      width: 30px;
-      height: 30px;
-      background: url('https://i.imgur.com/7QZQZQz.png') no-repeat; /* Booster image */
-      background-size: contain;
-      animation: moveDown linear infinite;
-    }
-    .obstacle {
-      position: absolute;
-      width: 50px;
-      height: 50px;
-      background: url('https://i.imgur.com/6QZQZQz.png') no-repeat; /* Obstacle image */
-      background-size: contain;
-      animation: moveDown linear infinite;
-    }
-    @keyframes moveDown {
-      from { top: -100px; }
-      to { top: 100%; }
-    }
-    #score {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      font-weight: bold;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 10px;
-      border-radius: 10px;
-    }
-    #game-over {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      text-align: center;
-      display: none;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 20px;
-      border-radius: 10px;
-    }
-    #settings {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 10px;
-      border-radius: 10px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Car Game</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #333, #000);
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        #car {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 100px;
+            background: linear-gradient(to bottom, #ff0000, #990000);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+
+        .obstacle {
+            position: absolute;
+            top: -100px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(to bottom, #00f, #009);
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.7);
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% {
+                top: -100px;
+            }
+            100% {
+                top: 100vh;
+            }
+        }
+
+        #score {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: white;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            display: none;
+        }
+
+        #game-over h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        #restart-button {
+            padding: 10px 20px;
+            font-size: 20px;
+            background: #ff0000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #restart-button:hover {
+            background: #990000;
+        }
+    </style>
 </head>
 <body>
-  <!-- Game Container -->
-  <div id="game-container">
-    <div id="player-bike" class="bike"></div>
-    <div id="score">Score: 0</div>
-    <div id="game-over">
-      <h2>Game Over!</h2>
-      <p>Your Score: <span id="final-score">0</span></p>
-      <button class="btn btn-primary" onclick="resetGame()">Play Again</button>
+    <div class="game-container">
+        <div id="car"></div>
+        <div id="score">Score: 0</div>
+        <div id="game-over">
+            <h1>Game Over!</h1>
+            <button id="restart-button">Restart</button>
+        </div>
     </div>
-    <div id="settings">
-      <label for="player-name">Name:</label>
-      <input type="text" id="player-name" placeholder="Enter your name">
-      <button class="btn btn-secondary mt-2" onclick="updateName()">Update Name</button>
-    </div>
-  </div>
 
-  <script>
-    const gameContainer = document.getElementById('game-container');
-    const playerBike = document.getElementById('player-bike');
-    const scoreElement = document.getElementById('score');
-    const gameOverElement = document.getElementById('game-over');
-    const finalScoreElement = document.getElementById('final-score');
-    const playerNameInput = document.getElementById('player-name');
+    <script>
+        const car = document.getElementById('car');
+        const gameContainer = document.querySelector('.game-container');
+        const scoreElement = document.getElementById('score');
+        const gameOverScreen = document.getElementById('game-over');
+        const restartButton = document.getElementById('restart-button');
 
-    let score = 0;
-    let gameOver = false;
-    let playerX = 50; // Player's horizontal position (percentage)
-    let playerName = "Player";
+        let carLeft = 50; // Initial position of the car (percentage)
+        let score = 0;
+        let gameSpeed = 2; // Initial speed of obstacles
+        let gameInterval;
+        let obstacleInterval;
 
-    // Update player name
-    function updateName() {
-      playerName = playerNameInput.value || "Player";
-      alert(`Name updated to: ${playerName}`);
-    }
+        // Move the car
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowLeft' && carLeft > 0) {
+                carLeft -= 10;
+            } else if (event.key === 'ArrowRight' && carLeft < 90) {
+                carLeft += 10;
+            }
+            car.style.left = `${carLeft}%`;
+        });
 
-    // Move player bike
-    function movePlayer(direction) {
-      if (gameOver) return;
-      if (direction === 'left' && playerX > 10) playerX -= 10;
-      if (direction === 'right' && playerX < 90) playerX += 10;
-      playerBike.style.left = playerX + '%';
-    }
+        // Create obstacles
+        function createObstacle() {
+            const obstacle = document.createElement('div');
+            obstacle.classList.add('obstacle');
+            obstacle.style.left = `${Math.random() * 90}%`; // Random horizontal position
+            obstacle.style.animationDuration = `${gameSpeed}s`; // Set falling speed
+            gameContainer.appendChild(obstacle);
 
-    // Create opponents
-    function createOpponent() {
-      if (gameOver) return;
-      const opponent = document.createElement('div');
-      opponent.classList.add('bike', 'opponent-bike');
-      opponent.style.left = Math.random() * 80 + 10 + '%';
-      gameContainer.appendChild(opponent);
+            // Remove obstacle when it goes off screen
+            setTimeout(() => {
+                obstacle.remove();
+            }, gameSpeed * 1000);
 
-      setTimeout(() => {
-        if (!gameOver && checkCollision(playerBike, opponent)) {
-          gameOver = true;
-          gameOverElement.style.display = 'block';
-          finalScoreElement.innerText = score;
+            // Check for collision
+            const checkCollision = setInterval(() => {
+                const carRect = car.getBoundingClientRect();
+                const obstacleRect = obstacle.getBoundingClientRect();
+
+                if (
+                    carRect.left < obstacleRect.right &&
+                    carRect.right > obstacleRect.left &&
+                    carRect.top < obstacleRect.bottom &&
+                    carRect.bottom > obstacleRect.top
+                ) {
+                    clearInterval(checkCollision);
+                    endGame();
+                }
+            }, 10);
         }
-        opponent.remove();
-      }, 5000); // Remove opponent after 5 seconds
-    }
 
-    // Create boosters
-    function createBooster() {
-      if (gameOver) return;
-      const booster = document.createElement('div');
-      booster.classList.add('booster');
-      booster.style.left = Math.random() * 80 + 10 + '%';
-      gameContainer.appendChild(booster);
-
-      setTimeout(() => {
-        if (!gameOver && checkCollision(playerBike, booster)) {
-          score += 10;
-          scoreElement.innerText = `Score: ${score}`;
+        // Increase score and difficulty
+        function updateScore() {
+            score++;
+            scoreElement.textContent = `Score: ${score}`;
+            if (score % 5 === 0) {
+                gameSpeed *= 0.9; // Increase speed by 10% every 5 points
+            }
         }
-        booster.remove();
-      }, 5000); // Remove booster after 5 seconds
-    }
 
-    // Create obstacles
-    function createObstacle() {
-      if (gameOver) return;
-      const obstacle = document.createElement('div');
-      obstacle.classList.add('obstacle');
-      obstacle.style.left = Math.random() * 80 + 10 + '%';
-      gameContainer.appendChild(obstacle);
-
-      setTimeout(() => {
-        if (!gameOver && checkCollision(playerBike, obstacle)) {
-          gameOver = true;
-          gameOverElement.style.display = 'block';
-          finalScoreElement.innerText = score;
+        // End the game
+        function endGame() {
+            clearInterval(gameInterval);
+            clearInterval(obstacleInterval);
+            gameOverScreen.style.display = 'block';
         }
-        obstacle.remove();
-      }, 5000); // Remove obstacle after 5 seconds
-    }
 
-    // Check collision
-    function checkCollision(player, element) {
-      const playerRect = player.getBoundingClientRect();
-      const elementRect = element.getBoundingClientRect();
-      return !(
-        playerRect.bottom < elementRect.top ||
-        playerRect.top > elementRect.bottom ||
-        playerRect.right < elementRect.left ||
-        playerRect.left > elementRect.right
-      );
-    }
+        // Restart the game
+        restartButton.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            score = 0;
+            gameSpeed = 2;
+            scoreElement.textContent = `Score: ${score}`;
+            carLeft = 50;
+            car.style.left = `${carLeft}%`;
+            startGame();
+        });
 
-    // Reset game
-    function resetGame() {
-      gameOver = false;
-      score = 0;
-      scoreElement.innerText = `Score: ${score}`;
-      gameOverElement.style.display = 'none';
-      document.querySelectorAll('.bike.opponent-bike, .booster, .obstacle').forEach(element => element.remove());
-    }
+        // Start the game
+        function startGame() {
+            gameInterval = setInterval(updateScore, 1000);
+            obstacleInterval = setInterval(createObstacle, 1000);
+        }
 
-    // Event listeners for keyboard controls
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowLeft') movePlayer('left');
-      if (e.key === 'ArrowRight') movePlayer('right');
-    });
-
-    // Event listeners for touch controls
-    document.addEventListener('touchstart', (e) => {
-      const touchX = e.touches[0].clientX;
-      if (touchX < window.innerWidth / 2) movePlayer('left');
-      else movePlayer('right');
-    });
-
-    // Start game loop
-    setInterval(createOpponent, 2000);
-    setInterval(createBooster, 3000);
-    setInterval(createObstacle, 4000);
-  </script>
+        startGame();
+    </script>
 </body>
 </html>
