@@ -25,8 +25,9 @@
         .road {
             position: absolute;
             top: 0;
-            left: 25%;
-            width: 50%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px; /* Fixed width for the road */
             height: 100%;
             background: #000; /* Black road */
             border-left: 10px dashed #fff; /* White dashed border */
@@ -38,6 +39,7 @@
             position: absolute;
             top: 0;
             left: 50%;
+            transform: translateX(-50%);
             width: 2px;
             height: 100%;
             background: repeating-linear-gradient(
@@ -142,12 +144,12 @@
         </div>
 
         <!-- Trees -->
-        <div class="tree" style="left: 10%; top: 0;"></div>
-        <div class="tree" style="left: 10%; top: 30%;"></div>
-        <div class="tree" style="left: 10%; top: 60%;"></div>
-        <div class="tree" style="right: 10%; top: 0;"></div>
-        <div class="tree" style="right: 10%; top: 30%;"></div>
-        <div class="tree" style="right: 10%; top: 60%;"></div>
+        <div class="tree" style="left: calc(50% - 200px); top: 0;"></div>
+        <div class="tree" style="left: calc(50% - 200px); top: 30%;"></div>
+        <div class="tree" style="left: calc(50% - 200px); top: 60%;"></div>
+        <div class="tree" style="left: calc(50% + 150px); top: 0;"></div>
+        <div class="tree" style="left: calc(50% + 150px); top: 30%;"></div>
+        <div class="tree" style="left: calc(50% + 150px); top: 60%;"></div>
 
         <!-- Car -->
         <div id="car"></div>
